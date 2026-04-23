@@ -5,662 +5,134 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Assistente Normativo</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
-
-  :root {
-    --bg: #0f0f0d;
-    --surface: #1a1a16;
-    --surface2: #222219;
-    --border: #2e2e26;
-    --accent: #c8a84b;
-    --accent2: #8fbc6a;
-    --text: #e8e6de;
-    --muted: #7a7a6e;
-    --danger: #c06050;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-weight: 300;
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    grid-template-rows: auto 1fr;
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  header {
-    grid-column: 1 / -1;
-    border-bottom: 1px solid var(--border);
-    padding: 14px 24px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    background: var(--surface);
-  }
-  header h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.3rem;
-    color: var(--accent);
-    letter-spacing: 0.02em;
-    flex: 1;
-  }
-  .subtitle {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-  .export-btn {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--muted);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 6px 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: color 0.2s, border-color 0.2s;
-  }
-  .export-btn:hover { color: var(--accent); border-color: var(--accent); }
-
-  aside {
-    border-right: 1px solid var(--border);
-    background: var(--surface);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    height: 100%;
-  }
-  .sidebar-section {
-    padding: 18px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .sidebar-section h2 {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 12px;
-  }
-  .upload-zone {
-    border: 1px dashed var(--border);
-    border-radius: 4px;
-    padding: 18px 14px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    position: relative;
-  }
-  .upload-zone:hover { border-color: var(--accent); background: rgba(200,168,75,0.04); }
-  .upload-zone.drag { border-color: var(--accent); background: rgba(200,168,75,0.08); }
-  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-  .upload-zone svg { display: block; margin: 0 auto 8px; color: var(--muted); }
-  .upload-zone p { font-size: 0.75rem; color: var(--muted); line-height: 1.5; }
-  .upload-zone strong { color: var(--accent); font-weight: 500; }
-
-  #doc-list { flex: 1; overflow-y: auto; padding: 10px; }
-  .doc-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 9px;
-    border-radius: 4px;
-    margin-bottom: 6px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    animation: fadeIn 0.25s ease;
-  }
-  .doc-icon {
-    flex-shrink: 0;
-    width: 26px; height: 26px;
-    background: rgba(200,168,75,0.12);
-    border-radius: 3px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.5rem;
-    color: var(--accent);
-  }
-  .doc-info { flex: 1; min-width: 0; }
-  .doc-name {
-    font-size: 0.75rem;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-weight: 400;
-  }
-  .doc-meta { font-size: 0.62rem; color: var(--muted); margin-top: 2px; }
-  .doc-del {
-    flex-shrink: 0;
-    background: none; border: none; cursor: pointer;
-    color: var(--muted); font-size: 1.1rem; line-height: 1;
-    transition: color 0.15s;
-  }
-  .doc-del:hover { color: var(--danger); }
-  .empty-docs {
-    padding: 16px;
-    font-size: 0.75rem;
-    color: var(--muted);
-    text-align: center;
-    font-style: italic;
-  }
-
-  main {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    height: 100%;
-  }
-
-  #messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-  }
-
-  .msg {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    animation: fadeIn 0.3s ease;
-    max-width: 820px;
-    width: 100%;
-  }
-  .msg.user { align-self: flex-end; align-items: flex-end; max-width: 680px; }
-  .msg.assistant { align-self: flex-start; }
-
-  .msg-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.58rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    padding: 0 4px;
-  }
-  .msg.user .msg-label { color: rgba(200,168,75,0.7); }
-
-  .msg-bubble {
-    padding: 13px 16px;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    line-height: 1.7;
-  }
-  /* USER bubble: dark warm bg + high-contrast text */
-  .msg.user .msg-bubble {
-    background: #2b2410;
-    border: 1px solid rgba(200,168,75,0.35);
-    color: #f2eed8;
-    font-weight: 400;
-  }
-  .msg.assistant .msg-bubble {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-  }
-  .msg-bubble p { margin-bottom: 0.55em; }
-  .msg-bubble p:last-child { margin-bottom: 0; }
-  .msg-bubble strong { font-weight: 500; color: var(--accent); }
-  .msg-bubble em { color: rgba(232,230,222,0.72); font-style: italic; }
-  .msg-bubble h3 {
-    font-size: 0.82rem; font-weight: 500;
-    color: var(--accent); margin: 0.8em 0 0.3em;
-  }
-  .msg-bubble code {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.82em;
-    background: rgba(255,255,255,0.06);
-    padding: 1px 5px;
-    border-radius: 2px;
-    color: var(--accent2);
-  }
-  .msg-bubble ul, .msg-bubble ol { padding-left: 1.4em; margin: 0.4em 0; }
-  .msg-bubble li { margin-bottom: 0.3em; }
-  .msg-bubble blockquote {
-    border-left: 2px solid var(--accent);
-    padding-left: 12px;
-    margin: 0.6em 0;
-    color: rgba(232,230,222,0.72);
-    font-style: italic;
-  }
-
-  .msg-docs-badge { display: flex; gap: 5px; flex-wrap: wrap; padding: 0 4px; }
-  .badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.56rem;
-    padding: 2px 6px;
-    border-radius: 2px;
-    background: rgba(143,188,106,0.1);
-    border: 1px solid rgba(143,188,106,0.2);
-    color: var(--accent2);
-  }
-
-  .error-bubble {
-    background: rgba(192,96,80,0.1);
-    border: 1px solid rgba(192,96,80,0.3);
-    color: #e8a090;
-    padding: 12px 16px;
-    border-radius: 4px;
-    font-size: 0.82rem;
-    font-family: 'IBM Plex Mono', monospace;
-    white-space: pre-wrap;
-  }
-
-  .loading-wrap { align-self: flex-start; }
-  .loading-dots {
-    display: flex; gap: 5px; padding: 14px 16px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 4px;
-  }
-  .loading-dots span {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--muted);
-    animation: pulse 1.2s ease-in-out infinite;
-  }
-  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-  .input-bar {
-    border-top: 1px solid var(--border);
-    padding: 14px 20px;
-    background: var(--surface);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-  .input-row { display: flex; gap: 10px; align-items: flex-end; }
-
-  textarea {
-    flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: #f2eed8;
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 0.875rem;
-    font-weight: 400;
-    padding: 11px 13px;
-    resize: none;
-    min-height: 42px;
-    max-height: 140px;
-    outline: none;
-    transition: border-color 0.2s;
-    line-height: 1.5;
-  }
-  textarea::placeholder { color: var(--muted); font-weight: 300; }
-  textarea:focus { border-color: rgba(200,168,75,0.4); }
-
-  .send-btn {
-    background: var(--accent);
-    color: #0f0f0d;
-    border: none;
-    border-radius: 4px;
-    padding: 10px 18px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: opacity 0.2s;
-    white-space: nowrap;
-  }
-  .send-btn:hover { opacity: 0.85; }
-  .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-  .warn-no-docs {
-    font-size: 0.7rem;
-    color: rgba(200,168,75,0.55);
-    font-style: italic;
-  }
-
-  .welcome {
-    align-self: center;
-    text-align: center;
-    margin: auto;
-    padding: 40px;
-  }
-  .welcome h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
-    color: var(--accent);
-    margin-bottom: 10px;
-  }
-  .welcome p {
-    font-size: 0.82rem;
-    color: var(--muted);
-    max-width: 380px;
-    line-height: 1.7;
-    margin: 0 auto;
-  }
-
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
-  @keyframes pulse { 0%,80%,100% { opacity: 0.3; } 40% { opacity: 1; } }
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-  /* ===== PRINT / PDF EXPORT ===== */
-  @media print {
-    @page { margin: 18mm 16mm; size: A4; }
-    html, body {
-      height: auto !important;
-      overflow: visible !important;
-      background: #fff !important;
-      color: #111 !important;
-      display: block !important;
-    }
-    body { grid-template-columns: 1fr !important; }
-    aside { display: none !important; }
-    header {
-      display: flex !important;
-      background: none !important;
-      border-bottom: 1.5px solid #bbb !important;
-      padding: 0 0 10px !important;
-      margin-bottom: 18px;
-    }
-    header h1 { color: #7a5c10 !important; font-size: 1.1rem !important; }
-    .subtitle { color: #888 !important; }
-    .export-btn { display: none !important; }
-    main { display: block !important; height: auto !important; overflow: visible !important; }
-    #messages {
-      overflow: visible !important;
-      padding: 0 !important;
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 10px !important;
-      height: auto !important;
-    }
-    .input-bar { display: none !important; }
-    .welcome { display: none !important; }
-    .loading-wrap { display: none !important; }
-
-    .msg { max-width: 100% !important; page-break-inside: avoid; }
-    .msg.user { align-items: flex-end !important; }
-    .msg-label { color: #888 !important; }
-    .msg.user .msg-bubble {
-      background: #fdf8e8 !important;
-      border: 1px solid #c8a84b !important;
-      color: #1a1200 !important;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-    .msg.assistant .msg-bubble {
-      background: #f5f5f3 !important;
-      border: 1px solid #ddd !important;
-      color: #111 !important;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-    .msg-bubble strong { color: #7a5c10 !important; }
-    .msg-bubble h3 { color: #7a5c10 !important; }
-    .msg-bubble code { background: #eee !important; color: #2a6e2a !important; }
-    .msg-bubble blockquote { border-left-color: #c8a84b !important; color: #555 !important; }
-    .msg-docs-badge { display: none !important; }
-    .error-bubble { background: #fff0ee !important; border-color: #c06050 !important; color: #a03020 !important; }
-  }
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+:root{--bg:#0f0f0d;--surface:#1a1a16;--surface2:#222219;--border:#2e2e26;--accent:#c8a84b;--accent2:#8fbc6a;--text:#e8e6de;--muted:#7a7a6e;--danger:#c06050}
+*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-weight:300;display:grid;grid-template-columns:300px 1fr;grid-template-rows:52px 1fr;height:100vh}
+header{grid-column:1/-1;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 20px}
+header h1{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--accent);flex:1;letter-spacing:.02em}
+.hdr-sub{font-family:'IBM Plex Mono',monospace;font-size:.56rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.btn-exp{background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.07em;text-transform:uppercase;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:color .2s,border-color .2s}
+.btn-exp:hover{color:var(--accent);border-color:var(--accent)}
+aside{border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden}
+.side-head{padding:14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.side-head h2{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.key-wrap{margin-bottom:10px}
+.key-row{display:flex;gap:6px;margin-bottom:6px}
+.key-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:3px;color:#f2eed8;font-family:'IBM Plex Mono',monospace;font-size:.65rem;padding:7px 9px;outline:none;transition:border-color .2s;min-width:0}
+.key-input:focus{border-color:rgba(200,168,75,.4)}.key-input::placeholder{color:var(--muted)}
+.btn-key{background:var(--accent);color:#0f0f0d;border:none;border-radius:3px;padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:.6rem;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.key-badge{font-family:'IBM Plex Mono',monospace;font-size:.58rem;padding:3px 8px;border-radius:3px;display:inline-block}
+.key-badge.ok{background:rgba(143,188,106,.1);border:1px solid rgba(143,188,106,.25);color:var(--accent2)}
+.key-badge.no{background:rgba(192,96,80,.08);border:1px solid rgba(192,96,80,.2);color:#e8a090}
+.dropzone{border:1px dashed var(--border);border-radius:4px;padding:14px 12px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative}
+.dropzone:hover,.dropzone.drag{border-color:var(--accent);background:rgba(200,168,75,.05)}
+.dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dropzone svg{display:block;margin:0 auto 6px;color:var(--muted)}.dropzone p{font-size:.7rem;color:var(--muted);line-height:1.5}.dropzone strong{color:var(--accent);font-weight:500}
+#doc-list{flex:1;overflow-y:auto;padding:8px}
+.doc-item{display:flex;align-items:center;gap:7px;padding:8px;border-radius:3px;margin-bottom:5px;background:var(--surface2);border:1px solid var(--border)}
+.doc-icon{flex-shrink:0;width:24px;height:24px;background:rgba(200,168,75,.1);border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:.46rem;color:var(--accent)}
+.doc-info{flex:1;min-width:0}.doc-name{font-size:.7rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.doc-sz{font-size:.58rem;color:var(--muted)}
+.doc-rm{flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem;line-height:1;transition:color .15s}.doc-rm:hover{color:var(--danger)}
+.empty{padding:14px;font-size:.7rem;color:var(--muted);text-align:center;font-style:italic}
+main{display:flex;flex-direction:column;overflow:hidden}
+#msgs{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:15px}
+.msg{display:flex;flex-direction:column;gap:4px;max-width:800px;width:100%;animation:fi .25s ease}
+.msg.user{align-self:flex-end;align-items:flex-end;max-width:640px}.msg.bot{align-self:flex-start}
+.msg-lbl{font-family:'IBM Plex Mono',monospace;font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:0 3px}
+.msg.user .msg-lbl{color:rgba(200,168,75,.65)}
+.bubble{padding:12px 15px;border-radius:4px;font-size:.85rem;line-height:1.7}
+.msg.user .bubble{background:#2b2410;border:1px solid rgba(200,168,75,.3);color:#f2eed8;font-weight:400}
+.msg.bot .bubble{background:var(--surface2);border:1px solid var(--border);color:var(--text)}
+.bubble p{margin-bottom:.5em}.bubble p:last-child{margin-bottom:0}
+.bubble strong{font-weight:500;color:var(--accent)}.bubble em{color:rgba(232,230,222,.7);font-style:italic}
+.bubble h3{font-size:.8rem;font-weight:500;color:var(--accent);margin:.7em 0 .25em}
+.bubble code{font-family:'IBM Plex Mono',monospace;font-size:.78em;background:rgba(255,255,255,.06);padding:1px 4px;border-radius:2px;color:var(--accent2)}
+.bubble ul,.bubble ol{padding-left:1.3em;margin:.35em 0}.bubble li{margin-bottom:.25em}
+.bubble blockquote{border-left:2px solid var(--accent);padding-left:11px;margin:.5em 0;color:rgba(232,230,222,.7);font-style:italic}
+.badges{display:flex;gap:4px;flex-wrap:wrap;padding:0 3px}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:.52rem;padding:2px 5px;border-radius:2px;background:rgba(143,188,106,.1);border:1px solid rgba(143,188,106,.2);color:var(--accent2)}
+.err-bubble{background:rgba(192,96,80,.1);border:1px solid rgba(192,96,80,.3);color:#e8a090;padding:11px 14px;border-radius:4px;font-size:.8rem;font-family:'IBM Plex Mono',monospace;white-space:pre-wrap}
+.ld-wrap{align-self:flex-start}
+.ld{display:flex;gap:5px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:4px}
+.ld span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:pulse 1.2s ease-in-out infinite}
+.ld span:nth-child(2){animation-delay:.2s}.ld span:nth-child(3){animation-delay:.4s}
+.input-bar{border-top:1px solid var(--border);background:var(--surface);padding:12px 18px;display:flex;flex-direction:column;gap:7px;flex-shrink:0}
+.input-row{display:flex;gap:9px;align-items:flex-end}
+textarea{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:#f2eed8;font-family:'IBM Plex Sans',sans-serif;font-size:.86rem;font-weight:400;padding:10px 12px;resize:none;min-height:40px;max-height:130px;outline:none;transition:border-color .2s;line-height:1.5}
+textarea::placeholder{color:var(--muted);font-weight:300}textarea:focus{border-color:rgba(200,168,75,.4)}
+.btn-send{background:var(--accent);color:#0f0f0d;border:none;border-radius:4px;padding:10px 16px;font-family:'IBM Plex Mono',monospace;font-size:.65rem;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:opacity .2s;white-space:nowrap}
+.btn-send:hover{opacity:.85}.btn-send:disabled{opacity:.35;cursor:not-allowed}
+.warn{font-size:.68rem;color:rgba(200,168,75,.5);font-style:italic}
+.welcome{align-self:center;text-align:center;margin:auto;padding:36px}
+.welcome h2{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--accent);margin-bottom:9px}
+.welcome p{font-size:.8rem;color:var(--muted);max-width:360px;line-height:1.7;margin:0 auto}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,80%,100%{opacity:.3}40%{opacity:1}}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+@media print{
+  @page{margin:18mm 15mm;size:A4}
+  html,body{height:auto!important;overflow:visible!important;background:#fff!important;color:#111!important;display:block!important}
+  body{grid-template-columns:1fr!important}aside{display:none!important}
+  header{display:flex!important;background:none!important;border-bottom:1.5px solid #bbb!important;padding:0 0 9px!important;margin-bottom:16px}
+  header h1{color:#7a5c10!important;font-size:1rem!important}.hdr-sub{color:#888!important}.btn-exp{display:none!important}
+  main{display:block!important;height:auto!important;overflow:visible!important}
+  #msgs{overflow:visible!important;padding:0!important;display:flex!important;flex-direction:column!important;gap:10px!important;height:auto!important}
+  .input-bar,.welcome,.ld-wrap{display:none!important}
+  .msg{max-width:100%!important;page-break-inside:avoid}.msg.user{align-items:flex-end!important}
+  .msg-lbl{color:#888!important}
+  .msg.user .bubble{background:#fdf8e8!important;border:1px solid #c8a84b!important;color:#1a1200!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .msg.bot .bubble{background:#f5f5f3!important;border:1px solid #ddd!important;color:#111!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .bubble strong,.bubble h3{color:#7a5c10!important}.bubble code{background:#eee!important;color:#2a6e2a!important}
+  .bubble blockquote{border-left-color:#c8a84b!important;color:#555!important}.badges{display:none!important}
+}
 </style>
 </head>
 <body>
-
 <header>
   <h1>Assistente Normativo</h1>
-  <span class="subtitle">D.Lgs. 36/2023 · NTC 2018 · Appalti · DL</span>
-  <button class="export-btn" onclick="exportPdf()">
-    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-      <path d="M12 16V4m0 12-4-4m4 4 4-4M4 20h16"/>
-    </svg>
+  <span class="hdr-sub">D.Lgs. 36/2023 · NTC 2018 · Appalti · DL</span>
+  <button class="btn-exp" onclick="exportPdf()">
+    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 16V4m0 12-4-4m4 4 4-4M4 20h16"/></svg>
     Esporta PDF
   </button>
 </header>
-
 <aside>
-  <div class="sidebar-section">
-    <h2>Documenti</h2>
-    <div class="upload-zone" id="upload-zone">
-      <input type="file" id="file-input" multiple accept=".pdf,.txt,.md">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-        <path d="M12 16V4m0 0L8 8m4-4 4 4M20 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2"/>
-      </svg>
-      <p>Trascina PDF o testi qui<br><strong>oppure clicca per selezionare</strong></p>
+  <div class="side-head">
+    <h2>API Key</h2>
+    <div class="key-wrap">
+      <div class="key-row">
+        <input class="key-input" id="key-input" type="password" placeholder="sk-ant-api03-..." />
+        <button class="btn-key" onclick="saveKey()">Salva</button>
+      </div>
+      <span class="key-badge no" id="key-badge">⚠ Key non impostata</span>
+    </div>
+    <h2 style="margin-top:12px">Documenti</h2>
+    <div class="dropzone" id="dz">
+      <input type="file" id="fi" multiple accept=".pdf,.txt,.md">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 16V4m0 0L8 8m4-4 4 4M20 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2"/></svg>
+      <p>Trascina PDF o testi qui<br><strong>oppure clicca</strong></p>
     </div>
   </div>
-  <div id="doc-list">
-    <p class="empty-docs">Nessun documento caricato</p>
-  </div>
+  <div id="doc-list"><p class="empty">Nessun documento caricato</p></div>
 </aside>
-
 <main>
-  <div id="messages">
+  <div id="msgs">
     <div class="welcome" id="welcome">
       <h2>Pronto all'analisi</h2>
-      <p>Carica uno o più documenti normativi (PDF, testo) e fai le tue domande. L'assistente risponderà citando articoli, commi e fonti specifiche.</p>
+      <p>Inserisci la tua API key Anthropic, carica i documenti normativi e fai le tue domande.</p>
     </div>
   </div>
   <div class="input-bar">
     <div class="input-row">
-      <textarea id="query" placeholder="Es. «Quali sono i limiti al subappalto secondo l'art. 119?»" rows="1"></textarea>
-      <button class="send-btn" id="send-btn" onclick="sendQuery()">Invia</button>
+      <textarea id="q" placeholder="Es. «Quali sono i limiti al subappalto secondo l'art. 119?»" rows="1"></textarea>
+      <button class="btn-send" id="btn" onclick="send()">Invia</button>
     </div>
-    <div id="warn" class="warn-no-docs" style="display:none">⚠ Nessun documento caricato — risposta dalla sola conoscenza del modello</div>
+    <div id="warn" class="warn" style="display:none">⚠ Nessun documento — risposta dalla sola conoscenza del modello</div>
   </div>
 </main>
-
 <script>
-const docs = [];
-let loading = false;
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// --- File reading ---
-function readPdfAsBase64(file) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res({ base64: r.result.split(',')[1], isPdf: true });
-    r.onerror = () => rej(new Error('Lettura fallita'));
-    r.readAsDataURL(file);
-  });
-}
-
-async function readFile(file) {
-  if (file.type === 'application/pdf') return readPdfAsBase64(file);
-  return { text: await file.text(), isPdf: false };
-}
-
-// --- Upload ---
-const fileInput = document.getElementById('file-input');
-const uploadZone = document.getElementById('upload-zone');
-
-fileInput.addEventListener('change', () => handleFiles(fileInput.files));
-uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag'); });
-uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
-uploadZone.addEventListener('drop', e => {
-  e.preventDefault();
-  uploadZone.classList.remove('drag');
-  handleFiles(e.dataTransfer.files);
-});
-
-async function handleFiles(files) {
-  for (const file of files) {
-    if (docs.find(d => d.name === file.name)) continue;
-    try {
-      const result = await readFile(file);
-      docs.push({ name: file.name, size: file.size, isPdf: result.isPdf || false, content: result.text || null, base64: result.base64 || null });
-    } catch(e) { console.error(e); }
-  }
-  renderDocList();
-}
-
-function renderDocList() {
-  const list = document.getElementById('doc-list');
-  if (!docs.length) { list.innerHTML = '<p class="empty-docs">Nessun documento caricato</p>'; return; }
-  list.innerHTML = docs.map((d, i) => `
-    <div class="doc-item">
-      <div class="doc-icon">${d.isPdf ? 'PDF' : 'TXT'}</div>
-      <div class="doc-info">
-        <div class="doc-name" title="${escHtml(d.name)}">${escHtml(d.name)}</div>
-        <div class="doc-meta">${(d.size/1024).toFixed(0)} KB</div>
-      </div>
-      <button class="doc-del" onclick="removeDoc(${i})">×</button>
-    </div>`).join('');
-}
-
-function removeDoc(i) { docs.splice(i, 1); renderDocList(); }
-
-// --- Textarea ---
-const textarea = document.getElementById('query');
-textarea.addEventListener('input', () => {
-  textarea.style.height = 'auto';
-  textarea.style.height = Math.min(textarea.scrollHeight, 140) + 'px';
-});
-textarea.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendQuery(); }
-});
-
-// --- Markdown → HTML ---
-function markdownToHtml(raw) {
-  // escape HTML first, then apply markdown
-  let t = escHtml(raw);
-
-  // headings
-  t = t.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  t = t.replace(/^## (.+)$/gm, '<h3>$1</h3>');
-  t = t.replace(/^# (.+)$/gm, '<h3>$1</h3>');
-
-  // bold / italic / code
-  t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  t = t.replace(/\*(.+?)\*/g, '<em>$1</em>');
-  t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-  // blockquote
-  t = t.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
-
-  // list items
-  t = t.replace(/^[-•–*] (.+)$/gm, '<li>$1</li>');
-  t = t.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-  // wrap runs of <li> in <ul>
-  t = t.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
-
-  // paragraphs (split on blank lines)
-  const blocks = t.split(/\n{2,}/);
-  t = blocks.map(b => {
-    b = b.trim();
-    if (!b) return '';
-    if (/^<(ul|ol|h3|blockquote)/.test(b)) return b;
-    return '<p>' + b.replace(/\n/g, '<br>') + '</p>';
-  }).filter(Boolean).join('\n');
-
-  return t;
-}
-
-// --- Messages ---
-function addMessage(role, rawText, docNames) {
-  const welcome = document.getElementById('welcome');
-  if (welcome) welcome.remove();
-
-  const msgs = document.getElementById('messages');
-  const div = document.createElement('div');
-  div.className = `msg ${role}`;
-
-  const label = role === 'user' ? 'Tu' : 'Assistente';
-  const bodyHtml = role === 'user'
-    ? `<p>${escHtml(rawText)}</p>`
-    : markdownToHtml(rawText);
-
-  let inner = `<div class="msg-label">${label}</div><div class="msg-bubble">${bodyHtml}</div>`;
-  if (role === 'assistant' && docNames && docNames.length) {
-    inner += `<div class="msg-docs-badge">${docNames.map(n => `<span class="badge">${escHtml(n)}</span>`).join('')}</div>`;
-  }
-  div.innerHTML = inner;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function addError(msg) {
-  const msgs = document.getElementById('messages');
-  const div = document.createElement('div');
-  div.className = 'msg assistant';
-  div.innerHTML = `<div class="msg-label">Errore</div><div class="error-bubble">⚠ ${escHtml(msg)}</div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function showLoading() {
-  const msgs = document.getElementById('messages');
-  const wrap = document.createElement('div');
-  wrap.id = 'loading-indicator';
-  wrap.className = 'loading-wrap';
-  wrap.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
-  msgs.appendChild(wrap);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-function hideLoading() {
-  const el = document.getElementById('loading-indicator');
-  if (el) el.remove();
-}
-
-// --- API call ---
-async function sendQuery() {
-  if (loading) return;
-  const q = textarea.value.trim();
-  if (!q) return;
-
-  textarea.value = '';
-  textarea.style.height = 'auto';
-  addMessage('user', q);
-  showLoading();
-  loading = true;
-  document.getElementById('send-btn').disabled = true;
-  document.getElementById('warn').style.display = docs.length === 0 ? 'block' : 'none';
-
-  try {
-    const contentParts = [];
-
-    for (const doc of docs) {
-      if (doc.isPdf && doc.base64) {
-        contentParts.push({
-          type: 'document',
-          source: { type: 'base64', media_type: 'application/pdf', data: doc.base64 }
-        });
-      } else if (doc.content) {
-        contentParts.push({
-          type: 'text',
-          text: `\n\n--- DOCUMENTO: ${doc.name} ---\n${doc.content}\n--- FINE DOCUMENTO ---`
-        });
-      }
-    }
-    contentParts.push({ type: 'text', text: q });
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: `Sei un assistente specializzato in diritto dei contratti pubblici italiani e normativa tecnica delle costruzioni. Le tue aree di competenza includono:
+const SYSTEM=`Sei un assistente specializzato in diritto dei contratti pubblici italiani e normativa tecnica delle costruzioni. Le tue aree di competenza includono:
 - D.Lgs. 36/2023 (Codice dei Contratti Pubblici) e D.Lgs. 50/2016
 - NTC 2018 (Norme Tecniche per le Costruzioni) e relative Istruzioni
 - Capitolati speciali d'appalto e contratti di opere pubbliche
@@ -677,37 +149,132 @@ ISTRUZIONI DI RISPOSTA:
 4. Se l'informazione non è nei documenti, indicalo chiaramente e rispondi dalla tua conoscenza
 5. Rispondi in italiano, con tono tecnico-professionale ma chiaro
 6. In caso di ambiguità normativa, segnala le diverse interpretazioni possibili
-7. Struttura le risposte con: risposta sintetica → riferimento normativo → spiegazione dettagliata`,
-        messages: [{ role: 'user', content: contentParts }]
+7. Struttura le risposte con: risposta sintetica → riferimento normativo → spiegazione dettagliata`;
+
+const docs=[];
+let busy=false;
+let apiKey='';
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function saveKey(){
+  const v=document.getElementById('key-input').value.trim();
+  if(!v){alert('Inserisci una API key valida');return}
+  apiKey=v;
+  const badge=document.getElementById('key-badge');
+  badge.className='key-badge ok';
+  badge.textContent='✓ Key impostata';
+  document.getElementById('key-input').value='';
+}
+
+function b64(file){return new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(r.result.split(',')[1]);r.onerror=ko;r.readAsDataURL(file)})}
+
+async function loadFiles(files){
+  for(const f of files){
+    if(docs.find(d=>d.name===f.name))continue;
+    try{
+      if(f.type==='application/pdf'){const base64=await b64(f);docs.push({name:f.name,size:f.size,isPdf:true,base64})}
+      else{const text=await f.text();docs.push({name:f.name,size:f.size,isPdf:false,text})}
+    }catch(e){console.error(e)}
+  }
+  renderDocs();
+}
+
+document.getElementById('fi').addEventListener('change',e=>loadFiles(e.target.files));
+const dz=document.getElementById('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');loadFiles(e.dataTransfer.files)});
+
+function renderDocs(){
+  const el=document.getElementById('doc-list');
+  if(!docs.length){el.innerHTML='<p class="empty">Nessun documento caricato</p>';return}
+  el.innerHTML=docs.map((d,i)=>`<div class="doc-item"><div class="doc-icon">${d.isPdf?'PDF':'TXT'}</div><div class="doc-info"><div class="doc-name" title="${esc(d.name)}">${esc(d.name)}</div><div class="doc-sz">${(d.size/1024).toFixed(0)} KB</div></div><button class="doc-rm" onclick="rmDoc(${i})">×</button></div>`).join('')
+}
+function rmDoc(i){docs.splice(i,1);renderDocs()}
+
+const ta=document.getElementById('q');
+ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,130)+'px'});
+ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+
+function md(raw){
+  let t=esc(raw);
+  t=t.replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h3>$1</h3>').replace(/^# (.+)$/gm,'<h3>$1</h3>');
+  t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/`([^`]+)`/g,'<code>$1</code>');
+  t=t.replace(/^&gt; (.+)$/gm,'<blockquote>$1</blockquote>');
+  t=t.replace(/^[-•–*] (.+)$/gm,'<li>$1</li>').replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
+  t=t.replace(/((?:<li>[^\n]*<\/li>\n?)+)/g,'<ul>$1</ul>');
+  return t.split(/\n{2,}/).map(b=>{b=b.trim();if(!b)return'';if(/^<(ul|ol|h3|blockquote)/.test(b))return b;return'<p>'+b.replace(/\n/g,'<br>')+'</p>'}).filter(Boolean).join('\n')
+}
+
+function addMsg(role,rawText,docNames){
+  document.getElementById('welcome')?.remove();
+  const c=document.getElementById('msgs');
+  const d=document.createElement('div');
+  d.className=`msg ${role}`;
+  const body=role==='user'?`<p>${esc(rawText)}</p>`:md(rawText);
+  let html=`<div class="msg-lbl">${role==='user'?'Tu':'Assistente'}</div><div class="bubble">${body}</div>`;
+  if(role==='bot'&&docNames?.length)html+=`<div class="badges">${docNames.map(n=>`<span class="badge">${esc(n)}</span>`).join('')}</div>`;
+  d.innerHTML=html;c.appendChild(d);c.scrollTop=c.scrollHeight;
+}
+
+function addErr(msg){
+  document.getElementById('welcome')?.remove();
+  const c=document.getElementById('msgs');
+  const d=document.createElement('div');
+  d.className='msg bot';
+  d.innerHTML=`<div class="msg-lbl">Errore</div><div class="err-bubble">⚠ ${esc(msg)}</div>`;
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
+}
+
+function showLoad(){const c=document.getElementById('msgs');const w=document.createElement('div');w.id='ld';w.className='ld-wrap';w.innerHTML='<div class="ld"><span></span><span></span><span></span></div>';c.appendChild(w);c.scrollTop=c.scrollHeight}
+function hideLoad(){document.getElementById('ld')?.remove()}
+
+async function send(){
+  if(busy)return;
+  if(!apiKey){alert('Inserisci prima la tua API key Anthropic nella sidebar sinistra.');return}
+  const q=ta.value.trim();
+  if(!q)return;
+  ta.value='';ta.style.height='auto';
+  addMsg('user',q);showLoad();busy=true;
+  document.getElementById('btn').disabled=true;
+  document.getElementById('warn').style.display=docs.length?'none':'block';
+  try{
+    const parts=[];
+    for(const doc of docs){
+      if(doc.isPdf&&doc.base64)parts.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:doc.base64}});
+      else if(doc.text)parts.push({type:'text',text:`--- DOCUMENTO: ${doc.name} ---\n${doc.text}\n--- FINE ---`});
+    }
+    parts.push({type:'text',text:q});
+
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1500,
+        system:SYSTEM,
+        messages:[{role:'user',content:parts}]
       })
     });
 
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error?.message || `HTTP ${response.status} - ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    hideLoading();
-
-    const text = (data.content || []).map(b => b.text || '').join('').trim();
-    if (!text) throw new Error('Risposta vuota dal modello.');
-    addMessage('assistant', text, docs.map(d => d.name));
-
-  } catch (err) {
-    hideLoading();
-    addError(err.message);
-  }
-
-  loading = false;
-  document.getElementById('send-btn').disabled = false;
+    const data=await res.json();
+    if(!res.ok)throw new Error(data?.error?.message||`HTTP ${res.status}`);
+    const answer=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    if(!answer)throw new Error('Risposta vuota dal modello.');
+    hideLoad();
+    addMsg('bot',answer,docs.map(d=>d.name));
+  }catch(e){hideLoad();addErr(e.message)}
+  busy=false;
+  document.getElementById('btn').disabled=false;
 }
 
-// --- Export PDF ---
-function exportPdf() {
-  const msgs = document.getElementById('messages');
-  const hasContent = msgs.querySelector('.msg');
-  if (!hasContent) { alert('Nessuna conversazione da esportare.'); return; }
+function exportPdf(){
+  if(!document.getElementById('msgs').querySelector('.msg')){alert('Nessuna conversazione da esportare.');return}
   window.print();
 }
 </script>
